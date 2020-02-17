@@ -1,0 +1,11 @@
+---
+test_offering:
+  offering:
+    id: "t"
+    alias:
+    - "tof"
+offering_name:
+  offering:
+    id: "q"
+    alias:
+    - "on"

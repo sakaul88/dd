@@ -1,0 +1,2 @@
+recursive-include orchutils/icpsettings_templates *
+include orchutils/vault_certs/*

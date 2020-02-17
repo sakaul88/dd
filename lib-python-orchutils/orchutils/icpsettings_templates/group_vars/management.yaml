@@ -1,0 +1,4 @@
+---
+newrelic_custom_attrs: "environment:{{ datacenter[0:5] | upper }}{{ config.platform_id | default(config.offering_id + config.platform_id_suffix) }},service:ICP management"
+vm_memory_mb: "16384"
+vm_num_cpus: "8"

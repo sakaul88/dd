@@ -1,0 +1,6 @@
+---
+c_category_var1: "c_category1"
+c_category_var2: "c_category2"
+c_category_var3:
+  c_category_var4: "c_category4"
+  c_category_var5: "c_category5"

@@ -1,0 +1,9 @@
+---
+{% set subnet = config.subnets | selectattr('id', 'equalto', node.subnet_id) | first -%}
+{%- set shortname = node.hostname.split('.', 2) | first -%}
+ansible_host: "{{ node.address }}"
+gateway: "{{ subnet.gateway }}"
+network: "{{ subnet.vmware_network }}"
+network_prefix: "{{ subnet.network_prefix }}"
+rexray_volumes: "{{ shortname }}-elasti:20:/var/lib/icp/logging/elk-data"
+scaleio_guid: "{{ uuid4() }}"

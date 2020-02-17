@@ -1,0 +1,7 @@
+---
+{% set subnet = config.subnets | selectattr('id', 'equalto', node.subnet_id) | first -%}
+ansible_host: "{{ node.address }}"
+gateway: "{{ subnet.gateway }}"
+network: "{{ subnet.vmware_network }}"
+network_prefix: "{{ subnet.network_prefix }}"
+scaleio_guid: "{{ uuid4() }}"

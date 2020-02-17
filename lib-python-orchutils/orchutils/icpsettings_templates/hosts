@@ -1,0 +1,53 @@
+[cluster:children]
+vms
+
+[vms:children]
+master
+proxy
+management
+worker
+
+[master]
+{%- for node in config.icp.nodes.vmware.mst.current %}
+{{ node.hostname.split('.', 2) | first }}
+{%- endfor %}
+
+[proxy]
+{%- for node in config.icp.nodes.vmware.pxy.current %}
+{{ node.hostname.split('.', 2) | first }}
+{%- endfor %}
+
+[management]
+{%- for node in config.icp.nodes.vmware.mgt.current %}
+{{ node.hostname.split('.', 2) | first }}
+{%- endfor %}
+
+[worker]
+{%- for node in config.icp.nodes.vmware.wrk.current %}
+{{ node.hostname.split('.', 2) | first }}
+{%- endfor %}
+
+{%- set num_zones = config.icp.zones | length -%}
+{%- if num_zones -%}
+{%- set node_types = config.icp.nodes.vmware.keys() | reject('equalto', 'wrk') -%}
+{%- for zone in config.icp.zones -%}
+  {%- do zone.update({'node_assignment': []}) -%}
+{%- endfor -%}
+{%- for node_type in node_types -%}
+  {%- for node in config.icp.nodes.vmware[node_type].current -%}
+    {%- set zone = config.icp.zones[(loop.index - 1) % num_zones] -%}
+    {%- do zone.node_assignment.append(node.hostname) -%}
+  {%- endfor -%}
+{%- endfor -%}
+{%- for node in config.icp.nodes.vmware.wrk.current -%}
+  {%- do config.icp.zones[0].node_assignment.append(node.hostname) -%}
+{%- endfor -%}
+
+{%- for zone in config.icp.zones %}
+
+[{{ zone.zone_name }}]
+{%- for hostname in zone.node_assignment %}
+{{ hostname.split('.', 2) | first }}
+{%- endfor -%}
+{%- endfor -%}
+{%- endif %}

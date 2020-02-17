@@ -1,0 +1,7 @@
+---
+datacenter: "{{ datacenter }}"
+platform_id: "{{ config.platform_id | default(config.offering_id + config.platform_id_suffix) }}"
+vault_hostname: "vaulty.sjc03.dc.local:8200"
+{% if config.icp.zones -%}
+infra_zones: "{{ config.icp.zones | length }}"
+{% endif -%}

@@ -1,0 +1,6 @@
+hvac
+jinja2
+semver
+six
+softlayer==5.8.0
+p2paas-baseutils
