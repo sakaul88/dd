@@ -6,11 +6,16 @@ make a branch of this repo
 
 ### Step 1 Install helm 3 
 (Why? because they have gotten rid of tiller)
-https://helm.sh/docs/intro/install/
+  - helm web site: https://helm.sh/docs/intro/install/
+  - make sure to set HELM_HOME to the directory where the p2paas-values.yaml file is
 
 ### Step 2 Install kind
  - kind web site: https://kind.sigs.k8s.io/
  - the default in this repo is to create kind/bin directory in the users's honme and install kind there
+ - create a cluster see example cluster configs in kind subdir
+   -- ~/kind/bin/kind create cluster --name=cluster1 --config=p2paas-kind.yaml
+ - create the namespace you will be using
+   -- kubectl create namespace kafka
 
 #### Note: 
 have seen that a kind cluster will exist after a reboot, but may be partially incomplete - had to delete cluster and rerun playbook to create it

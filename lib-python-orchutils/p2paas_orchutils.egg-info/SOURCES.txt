@@ -3,8 +3,6 @@ README.md
 setup.py
 orchutils/__init__.py
 orchutils/helm.py
-orchutils/helm3.1.py
-orchutils/helm3.2.py
 orchutils/helm3.py
 orchutils/ibmcloud.py
 orchutils/icpsettings.py

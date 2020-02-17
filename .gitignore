@@ -1,0 +1,3 @@
+p2paas_orchutils.egg-info/*
+lib-python-orchutils/dist/*
+lib-python-orchutils/build/*

@@ -13,11 +13,6 @@ from orchutils.helmmodels.releaserevision import ReleaseRevision
 
 logger = logging.getLogger(__name__)
 helm_binary = '/usr/local/bin/helm'
-if 'P2PAAS_ORCH_DIR' in os.environ and 'HELM_HOME' not in os.environ:
-    # Support customisation of the HEML_HOME path to facilitate simultaneous management of multiple clusters from a single server
-    os.environ['HELM_HOME'] = os.path.join(os.environ['P2PAAS_ORCH_DIR'], '.helm')
-    helm_binary = baseutils.shell_escape(os.path.join(os.environ['P2PAAS_ORCH_DIR'], 'helm'))
-
 
 def set_helm_home(helm_home):
     """
@@ -83,27 +78,27 @@ def uninstall(release_name):
         release_name=baseutils.shell_escape(release_name)))
 
 
-def install_chart(chart, version, values, release, namespace, validate_manifest=False, dry_run=False, debug=False):
+def install_chart(chart, version, valuesFile, release, namespace, validate_manifest=False, dry_run=False, debug=False):
     """
     Install a new chart with a specified release name.
     Args:
         chart: The name of the chart to install
         version: The version of the chart to install
-        values: A dictionary of values to be substituted into Helm
+        valuesFile: A file containing chart values
         release: The name to assign to the deployed release
         namespace: The namespace to deploy the release into
         validate_manifest: Validate the manifest meets a predermined set of criteria. See #validate_manifest_requirements for details (Optional, default: True)
         dry_run: Perform the install in dry-run mode. No changes will be made in the Kubernetes cluster (Optional, default: False)
         debug: Perform the install in debug mode, increasing logging output (Optional, default: False)
     """
-    logger.info('Installing chart {chart} (release: {release}) with version {version} {dry_run}'.format(chart=chart, release=release, version=version, dry_run=dry_run))
-    values_file = create_values_file(values)
+    logger.info('Installing chart {chart} (release: {release}) valuesFile: {valuesFile} with version {version} {dry_run}'.format(chart=chart, release=release, valuesFile=valuesFile, version=version, dry_run=dry_run))
     validate_manifest = False
     try:
-        (rc, output) = baseutils.exe_cmd('{helm} install  {release} {chart} --version {version} --namespace {namespace} --dry-run'.format(
+        (rc, output) = baseutils.exe_cmd('{helm} install {release} {chart} --values {valuesFile} --version {version} --namespace {namespace} --dry-run'.format(
             helm=helm_binary,
             release=baseutils.shell_escape(release),
             chart=baseutils.shell_escape(chart),
+            valuesFile=baseutils.shell_escape(valuesFile),
             version=baseutils.shell_escape(version),
             namespace=baseutils.shell_escape(namespace),
             working_dir=os.environ.get('HELM_HOME'), log_level=logging.NOTSET, raise_exception=False))  # Logging is disabled as output can contain secrets
@@ -123,40 +118,41 @@ def install_chart(chart, version, values, release, namespace, validate_manifest=
                 for error in errors:
                     logger.error(error)
                 raise Exception('Chart pre-approval validation failed. Reason: {failure_reasons}'.format(failure_reasons='. '.join(errors)))
-        deploy_cmd = '{helm} install {release} {chart} --version {version} --namespace {namespace}'.format(
+        deploy_cmd = '{helm} install {release} {chart} --values {valuesFile} --version {version} --namespace {namespace}'.format(
             helm=helm_binary,
             release=baseutils.shell_escape(release),
             chart=baseutils.shell_escape(chart),
+            valuesFile=baseutils.shell_escape(valuesFile),
             version=baseutils.shell_escape(version),
             namespace=baseutils.shell_escape(namespace),
             dry_run='--dry-run' if dry_run else '',
             debug='--debug' if debug else '')
         _attempt_chart_deploy(deploy_cmd)
     finally:
-        os.remove(values_file)
-    logger.info('Install request for chart {chart} (release: {release}) with version {version} passed to Kubernetes'.format(chart=chart, release=release, version=version))
+        logger.info("completed")
+    logger.info('Install request for chart {chart} (release: {release}) valuesFile: {valuesFile} with version {version} passed to Kubernetes'.format(chart=chart, release=release, valuesFile=valuesFile, version=version))
 
 
-def upgrade_chart(chart, version, values, release, namespace, dry_run=False, debug=False):
+def upgrade_chart(chart, version, valuesFile, release, namespace, dry_run=False, debug=False):
     """
     Upgrade a specific release of a chart. This could be due to a new chart version being available or updated values for the chart.
     Args:
         chart: The name of the chart to upgrade
         version: The version of the chart to upgrade to
-        values: A dictionary of values to be substituted into Helm
+        valuesFile: A file used to relace chart values
         release: The name of the deployed release to upgrade
         namespace: The namespace to deploy the release into
         dry_run: Perform the upgrade in dry-run mode. No changes will be made in the Kubernetes cluster (Optional, default: False)
         debug: Perform the upgrade in debug mode, increasing logging output (Optional, default: False)
     """
-    logger.info('Upgrading chart {chart} (release: {release}) to version {version}'.format(chart=chart, release=release, version=version))
-    values_file = create_values_file(values)
+    logger.info('Upgrading chart {chart} (release: {release}) values {valuesFile} to version {version}'.format(chart=chart, release=release, valuesFile=valuesFile, version=version))
     try:
-        deploy_cmd = '{helm} upgrade --values {values_file} {release} {chart} --version {version} --namespace {namespace}'.format(
+        deploy_cmd = '{helm} upgrade --values {values_file} {release} {chart} --values {valuesFile} --version {version} --namespace {namespace}'.format(
             helm=helm_binary,
             values_file=baseutils.shell_escape(values_file),
             release=baseutils.shell_escape(release),
             chart=baseutils.shell_escape(chart),
+            valuesFile=baseutils.shell_escape(valuesFile),
             version=baseutils.shell_escape(version),
             namespace=baseutils.shell_escape(namespace),
             dry_run='--dry-run' if dry_run else '',
@@ -164,7 +160,7 @@ def upgrade_chart(chart, version, values, release, namespace, dry_run=False, deb
         _attempt_chart_deploy(deploy_cmd)
     finally:
         os.remove(values_file)
-    logger.info('Upgrade request for chart {chart} (release: {release}) to version {version} passed to Kubernetes'.format(chart=chart, release=release, version=version))
+    logger.info('Upgrade request for chart {chart} (release: {release}) values {valuesFile} to version {version} passed to Kubernetes'.format(chart=chart, release=release, valuesFile=valuesFile, version=version))
 
 
 def _attempt_chart_deploy(deploy_cmd, attempt=0):
@@ -183,18 +179,6 @@ def _attempt_chart_deploy(deploy_cmd, attempt=0):
             _attempt_chart_deploy(deploy_cmd, attempt=attempt+1)
         else:
             raise
-
-
-def create_values_file(values):
-    """
-    Dumps a dictionary set of values to a random yaml file and returns the full path to the file.
-    """
-    (fd, values_file) = tempfile.mkstemp('.yaml')  # mkstemp returns an os level file descriptor versus an open file handle. Cannot use yaml's built-in stream writer
-    try:
-        os.write(fd, yaml.safe_dump(values, default_flow_style=False).encode('utf-8'))
-    finally:
-        os.close(fd)
-    return values_file
 
 
 def list_releases(filter=None):
