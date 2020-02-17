@@ -2,7 +2,6 @@
 This repo is meant for Migration of current supported apps to IKS where appropriate
 
 ### Git Use
-<<<<<<< HEAD
 make a branch of this repo
 
 ### Step 1 Install helm 3 
@@ -29,7 +28,6 @@ I had to run these pip installs:
  - pip install ansible
 
 I had to make a copy of the helm.py program in the lib-python-orchutils repo uner the orchutils directory.  This proigram had some specifi helm 2 syntax
-
 
 Node networking article:
 https://www.magalix.com/blog/kubernetes-cluster-networking-101
