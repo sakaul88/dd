@@ -24,6 +24,7 @@ This repo is meant for Migration of current supported apps to IKS where appropri
 (Why? because they have gotten rid of tiller)
   - helm web site: https://helm.sh/docs/intro/install/
   - make sure to set HELM_HOME to the directory where the p2paas-values.yaml file is
+  - The p2paas-values.yaml file is a copy pof the chart values.yaml file and it is the place where we make changes to the chart values
 
 ### Step 2 Install kind
  - kind web site: https://kind.sigs.k8s.io/
@@ -47,6 +48,23 @@ I had to make a copy of the helm.py program in the lib-python-orchutils repo une
 
 Node networking article:
 https://www.magalix.com/blog/kubernetes-cluster-networking-101
+
+## Work Around
+### No uninstall playbook
+ - TODO
+ - for now you just run
+  -- helm uninstall <release> --namespace <namespace>
+  -- i.e.,helm uninstall elasticsearch --namespace elasticsearch
+
+### No Services exposed for performiung production like operatons
+ - TODO
+ - I have exposed services by setting service typoe to NodePort, but it needs more work
+   -- may need an ingress.  I have an ingress install process and I have tested it
+   
+### Persistent Volume Claims
+ - TODO
+ - Have not done anything with this as far as Ansible/Helm is concerned
+ - Need to find out how far we have gotten with Cloud Object Store as it has encryption
 
 ## Docs
 ### Ansible
