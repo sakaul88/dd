@@ -31,7 +31,7 @@ RETURN = '''
 '''
 
 def run_helm():
-    modulename = "elasticsearch"
+    modulename = "kafka"
     baseutils.configure_logger(logger, file_path='/tmp/'+modulename+'.log', level=logging.INFO)
     module_args = {
         'environments': {'type': 'list', 'required': True},
