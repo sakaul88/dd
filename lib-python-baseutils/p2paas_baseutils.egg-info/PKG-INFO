@@ -1,0 +1,20 @@
+Metadata-Version: 1.1
+Name: p2paas-baseutils
+Version: 1.0.0
+Summary: Basic Python Helper Functions
+Home-page: https://github.ibm.com/WCE-SaaS-Ops/lib-python-baseutils
+Author: Alan Byrne
+Author-email: alan.byrne@ie.ibm.com
+License: Apache License 2.0
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7

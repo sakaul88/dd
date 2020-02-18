@@ -1,0 +1,3 @@
+logmatic-python
+pyyaml
+requests

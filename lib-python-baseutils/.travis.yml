@@ -1,0 +1,93 @@
+# Setup Travis
+#   1. Login at travis.ibm.com
+#   2. Go to accounts and click on "Sync account"
+#   3. Enable the repo you'd like to setup, and click on the settings icon
+#   4. Enable "Build pushes" & "Build pull requests"
+#
+# Documentation:
+#   Make sure to read / review:
+#     1. Docker best practices: https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/
+#     2. Helm best practices: https://github.com/kubernetes/helm/tree/master/docs/chart_best_practices
+#     3. Reference charts:  https://github.com/kubernetes/charts
+#
+#   The high level goal is to build, test, and deploy during a merge while also allowing the ability to perform the entire end-to-end flow within your private repo
+#   simply by setting Travis CI environment variables
+#
+#   This script combined with initial setup accomplishes this.  The code is setup to skip various flows if Travis environment variables are not present, and a high level of each:
+#     a.  INTRANET_USERNAME:  The read / write username for logging into Artifactory (Docker and PiPY)
+#     b.  ARTIFACTORY_USERNAME: The username for publishing artefacts from artefactory. If not provided, INTRANET_USERNAME is used.
+#     c.  ARTIFACTORY_API_KEY:  The API key for ARTIFACTORY_USERNAME to be used where supported
+#
+#   Flow:
+#     i.   If ARTIFACTORY_API_KEY is not specified the code will simply build without publishing artifacts to Artifactory
+#
+#   Global variables:
+#     A.  PIP_MODULE_NAME:  Used for the PIP artefact name
+#     B.  PIP_HOSTNAME:  The artefactory hostname for uploading built artefacts
+#     C.  PIP_REPO_NAME:  The artefactory repository to upload build artefacts to
+#
+# Unexpected nuances:
+#   1. before_deploy is executed for each and every deploy, so use it sparingly. I.E.  If there are multiple deploy in the list, before_deploy is called for each of them
+#   2. Executing a script during deploy with packages installed via pip causes issues, as Python can't find them by default. PYTHONPATH is needed to point them to the pip site-packages location
+#   3. There is no obvious means to instruct deploy to package a Python module from a specific directory. As a result, before_deploy is needed to setup
+
+# Indicates type of virtual environment. [Ubuntu container, Ubuntu VM, OSX VM]
+# sudo: false => Ubuntu container
+# sudo: required => Ubuntu VM 
+# os: osx => OSX VM
+sudo: false
+
+language: python
+python:
+- "2.7"
+- "3.6"
+
+env:
+  global:
+  - PIP_MODULE_NAME=p2paas-baseutils
+  - PIP_HOSTNAME=na.artifactory.swg-devops.com
+  - PIP_REPO_NAME=wce-p2paas-pypi-local
+
+before_install:
+- export version=1.$(date "+%Y%m%d").${TRAVIS_BUILD_NUMBER}
+- echo "Build version=$version"
+- cd $TRAVIS_BUILD_DIR
+- sed -ie "s/version='1.0.0'/version='${version}'/" setup.py
+- cat setup.py
+- export ARTIFACTORY_USERNAME=$(if [[ -z "${ARTIFACTORY_USERNAME}" ]]; then echo ${INTRANET_USERNAME}; else echo ${ARTIFACTORY_USERNAME}; fi)
+
+install:
+- pip install dateutils
+- pip install flake8
+- pip install logmatic-python
+- pip install PyYAML
+- pip install requests
+- pip install simplejson
+- pip install unittest2
+
+before_script:
+- flake8 . --count --max-complexity=10 --max-line-length=180 --statistics
+
+script:
+- python -m unittest discover -s ${TRAVIS_BUILD_DIR}/baseutils/tests
+
+before_deploy:
+- cd ${TRAVIS_BUILD_DIR}
+
+deploy:
+- provider: pypi
+  user: ${ARTIFACTORY_USERNAME}
+  password:
+    secure: ${ARTIFACTORY_API_KEY}
+  server: https://${PIP_HOSTNAME}/artifactory/api/pypi/${PIP_REPO_NAME}
+  skip_upload_docs: true
+  skip_cleanup: true
+  distributions: "sdist"
+  on:
+    condition: '${TRAVIS_EVENT_TYPE} = push && -n "${ARTIFACTORY_USERNAME}" && -n "${ARTIFACTORY_API_KEY}" && ${TRAVIS_TEST_RESULT} == 0'
+    python: "3.6"
+
+after_deploy:
+- echo "Searching for python package in repository to validate deploy..."
+- curl -u ${ARTIFACTORY_USERNAME}:${ARTIFACTORY_API_KEY} https://${PIP_HOSTNAME}/artifactory/list/${PIP_REPO_NAME}/${PIP_MODULE_NAME}/${version}/ | grep ".tar.gz" || DEPLOY_FAILURE=true
+- if [[ ${DEPLOY_FAILURE} == 'true' ]]; then echo "Deploy phase failed.  Failed to find https://${PIP_HOSTNAME}/artifactory/list/${PIP_REPO_NAME}/${PIP_MODULE_NAME}/${version} on Artifactory server"; travis_terminate 1; fi
