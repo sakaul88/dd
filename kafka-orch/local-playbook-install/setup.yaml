@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  # strategy: serial
+  roles:
+  - role: "setup_kind"
+  - role: "kind_cluster"
+...

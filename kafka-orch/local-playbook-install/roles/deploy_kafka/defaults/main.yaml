@@ -1,0 +1,19 @@
+environments:
+#- category: "np"
+#  metro: "sjc03"
+#  offering: "platform-orchestration"
+- category: "localhost"
+  metro: "localhost"
+  offering: "platform-orchestration"
+charts:
+  - chart:
+    name: "bitnami/kafka"
+    namespace: "kafka"
+    release: "kafka"
+    chartVersion: "7.2.3"
+    valuesFile: "p2paas-values.yaml"
+helm_repository_url: "https://charts.bitnami.com/bitnami"
+enforce_chart_requirements: "false"
+#- category: "np"
+#  metro: "sjc03"
+#  offering: "platform-sre"

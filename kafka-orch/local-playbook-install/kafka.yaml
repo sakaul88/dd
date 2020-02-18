@@ -1,0 +1,6 @@
+---
+- hosts: localhost
+  # strategy: serial
+  roles:
+  - role: "deploy_kafka"
+...

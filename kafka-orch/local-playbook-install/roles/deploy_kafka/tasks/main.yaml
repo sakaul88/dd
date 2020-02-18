@@ -1,0 +1,90 @@
+# - name: Check for existing cluster
+#   shell: "{{ ansible_facts.user_dir }}/kind/bin/kind get clusters"
+#   register: cluster_exists
+#
+# - name: Create Kind (k8s) Cluster (could take a few minutes)
+#   shell: "{{ ansible_facts.user_dir }}/kind/bin/kind create cluster"
+#   when: cluster_exists.stderr.find("No kind clusters found.") == 0
+#
+# - name: Check for existing namespace
+#   shell: "kubectl get namespace | grep {{ charts[0]['namespace'] }} | cut -f1 -d' '"
+#   register: namespace_exists
+#
+# - name: Create k8s Namespace
+#   shell: kubectl create namespace kafka
+#   when: namespace_exists.stdout.find("charts[0]['namespace']") == -1
+  # runconfserafter.stdout_lines | map('trim')
+  # when: namespace_exists.stdout.find("charts[0]['namespace']") == -1
+
+- name: "Override the default environment list if values have been passed in by the user"
+  set_fact:
+    environments:
+    - category: "{{ category }}"
+      metro: "{{ metro }}"
+      offering: "{{ offering }}"
+  when: "offering is defined"
+- name: "Calculate the default set of environments to use if not set by other means (from another role or explicitly a single environment)"
+  block:
+  - name: "Set the environment list to localhost envs if requested by the user"
+    set_fact:
+      environments: "{{ localhost }}"
+    when: "environments_category is defined and environments_category == 'localhost'"
+  - name: "Set the environment list to nonprod envs if requested by the user"
+    set_fact:
+      environments: "{{ nonprod_environments }}"
+    when: "environments_category is defined and environments_category == 'nonprod'"
+  - name: "Set the environment list to production envs if requested by the user"
+    set_fact:
+      environments: "{{ production_environments }}"
+    when: "environments_category is defined and environments_category == 'production'"
+  - name: "Default the environment list to all environments when a category is not provided"
+    set_fact:
+      environments: "{{ nonprod_environments + production_environments }}"
+    when: "environments_category is undefined or environments_category == 'all'"
+  when: "environments is undefined"
+
+# - name: "Set a chart list of length 1 when chart and namespace are individually passed in by the user"
+#   set_fact:
+#     charts:
+#        name: "{{ chart }}"
+#        namespace: "{{ namespace }}"
+#        release: "{{ release }}"
+#        chartVersion: "{{ chartVersion }}"
+#   when: "environments.chart is defined"
+
+- name: "Set a default for enforce_chart_requirements if appropriate"
+  set_fact:
+    enforce_chart_requirements: true
+  when: "enforce_chart_requirements is undefined"
+- name: "Convert enforce_chart_requirements to boolean true if appropriate (AWX cannot pass it as a boolean)"
+  set_fact:
+    enforce_chart_requirements: true
+  when: "enforce_chart_requirements == 'true'"
+- name: "Convert enforce_chart_requirements to boolean false if appropriate (AWX cannot pass it as a boolean)"
+  set_fact:
+    enforce_chart_requirements: false
+  when: "enforce_chart_requirements == 'false'"
+
+- name: Check if kafka already installed
+  shell: kubectl get pods -n kafka
+  register: kafka_deployed
+
+- name: "Deploying latest version of Helm charts"
+  deploy_helm_chart:
+    environments: "{{ environments }}"
+    charts: "{{ charts }}"
+    enforce_chart_requirements: "{{ enforce_chart_requirements }}"
+    helm_repository_url: "{{ helm_repository_url }}"
+  when: kafka_deployed.stdout.find("kafka") == -1
+    # public_github_pat: "{{ public_github_pat }}"
+    # resumefrom:
+    #   category: "{{ resumefrom_category | default('') }}"
+    #   metro: "{{ resumefrom_metro | default('') }}"
+    #   offering: "{{ resumefrom_offering | default('') }}"
+  # environment:
+  #   P2PAAS_SETTINGS_DIR: "{{ p2paas_iks_settings_dir }}"
+  #   P2PAAS_ORCH_DIR: "{{ p2paas_orch_dir }}"
+  #   VAULT_URL: "{{ lookup('env','VAULT_ADDR') }}"
+  #   VAULT_ACCESS_TOKEN: "{{ lookup('env','VAULT_TOKEN') }}"
+  # async: 43200 # 12 hour timeout to cover the potential high number of environment currently managed sequentially - the custom module will perform more fine-tuned timeout handling
+  # poll: 30 # Check the status of the module every 30 seconds
