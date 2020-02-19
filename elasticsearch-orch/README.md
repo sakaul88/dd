@@ -27,3 +27,30 @@ ansible localhost -m setup > facts.txt       <=  this command will capture the s
 run helm install elasticsearch stable/elasticsearch --namespace elasticsearch --version 1.30.0 --values p2paas-es-values.yaml --debug --dry-run
 
 This will printout the k8s yamls and not do an actual install.  You can review this information if you are making changes to that p2pass-es-values.yaml
+
+### Example run
+ - ansible-play elasticsearch.yaml
+ - wait until es is running and ready: kubectl get pods -n elasticsearch
+ - ansible-play kibana.yaml
+ 
+#### elasticsearch notes
+Elasticsearch can be accessed:
+
+  * Within your cluster, at the following DNS name at port 9200:
+
+    elasticsearch-client.elasticsearch.svc
+
+  * From outside the cluster, run these commands in the same shell:
+
+    export POD_NAME=$(kubectl get pods --namespace elasticsearch -l "app=elasticsearch,component=client,release=elasticsearch" -o jsonpath="{.items[0].metadata.name}")
+    echo "Visit http://127.0.0.1:9200 to use Elasticsearch"
+    kubectl port-forward --namespace elasticsearch $POD_NAME 9200:9200
+
+#### kibana notes
+Kibana can be accessed:
+
+  * From outside the cluster, run these commands in the same shell:
+
+    export POD_NAME=$(kubectl get pods --namespace elasticsearch -l "app=kibana,release=kibana" -o jsonpath="{.items[0].metadata.name}")
+    echo "Visit http://127.0.0.1:5601 to use Kibana"
+    kubectl port-forward --namespace elasticsearch $POD_NAME 5601:5601
