@@ -6,7 +6,7 @@ This repo is meant for Migration of current supported apps to IKS where appropri
 
 ### get a repo clone
  - git clone git@github.ibm.com:WCE-SaaS-Ops/p2pass-iks-containerization.git
- 
+
 ### create a new branch
  - git checkout -b my-new-branch-name
 
@@ -20,13 +20,24 @@ This repo is meant for Migration of current supported apps to IKS where appropri
  - git merge master (or rebase)
 
 
-### Step 1 Install helm 3 
+### Step 1 Install Ansible
+  - see https://docs.ansible.com/ansible/latest/user_guide/quickstart.html  
+  -
+### Step 2 Install helm 3
 (Why? because they have gotten rid of tiller)
   - helm web site: https://helm.sh/docs/intro/install/
   - make sure to set HELM_HOME to the directory where the p2paas-values.yaml file is
-  - The p2paas-values.yaml file is a copy pof the chart values.yaml file and it is the place where we make changes to the chart values
+  - The p2paas-values.yaml file is a copy of the chart values.yaml file and it is where we make changes to the chart values
+  - You will need to get helm repos installed
+    -- Run: helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+      --- helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+      --- helm repo add iks-charts https://icr.io/helm/iks-charts
+      --- helm repo add ibm-charts https://raw.githubusercontent.com/IBM/charts/master/repo/stable
+      --- helm repo add ibm-community	https://raw.githubusercontent.com/IBM/charts/master/repo/community
+      --- helm repo add entitled https://raw.githubusercontent.com/IBM/charts/master/repo/entitled
+      --- helm repo add bitnami https://charts.bitnami.com/bitnami
 
-### Step 2 Install kind
+### Step 3 Install kind
  - kind web site: https://kind.sigs.k8s.io/
  - the default in this repo is to create kind/bin directory in the users's honme and install kind there
  - create a cluster see example cluster configs in kind subdir
@@ -34,12 +45,12 @@ This repo is meant for Migration of current supported apps to IKS where appropri
  - create the namespace you will be using
    -- kubectl create namespace kafka
 
-#### Note: 
+#### Note:
 have seen that a kind cluster will exist after a reboot, but may be partially incomplete - had to delete cluster and rerun playbook to create it
 
 In the library section you may have to create a python program that uses the AnsibleModules module and calls other python programs that our team has written.
 
-### Step 3 Fix Python3
+### Step 4 Fix Python3
 I had to run these pip installs:
  - pip install selinux
  - pip install ansible
@@ -60,7 +71,7 @@ https://www.magalix.com/blog/kubernetes-cluster-networking-101
  - TODO
  - I have exposed services by setting service typoe to NodePort, but it needs more work
    -- may need an ingress.  I have an ingress install process and I have tested it
-   
+
 ### Persistent Volume Claims
  - TODO
  - Have not done anything with this as far as Ansible/Helm is concerned

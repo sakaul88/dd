@@ -50,6 +50,24 @@ cluster1-worker3         Ready    <none>   58m   v1.17.0   beta.kubernetes.io/ar
             - another-node-label-value
 >
 
-#### Note: 
-have seen that a kind cluster will exist after a reboot, but may be partially incomplete - had to delete cluster and rerun playbook to create it
+#### Different releases
+I have found that there are some charts that were built on older versions of kubernetes.  Kind has the ability to run older versions of kubernetes.  For the available versions, see https://github.com/kubernetes-sigs/kind/releases.
 
+You can add the release image to the config yaml, here is the p2paas-kind-v1.15.yaml example:
+> kind: Cluster
+> apiVersion: kind.x-k8s.io/v1alpha4
+> # networking:
+> #   apiServerAddress: "10.96.0.5"
+> nodes:
+> - role: control-plane
+>   image: kindest/node:v1.15.7@sha256:e2df133f80ef633c53c0200114fce2ed5e1f6947477dbc83261a6a921169488d
+>   kubeadmConfigPatches:
+>     - |
+>      kind: InitConfiguration
+>       nodeRegistration:
+>         kubeletExtraArgs:
+>           node-labels: "ingress-ready=true"
+>           authorization-mode: "AlwaysAllow"
+
+#### Note:
+have seen that a kind cluster will exist after a reboot, but may be partially incomplete - had to delete cluster and rerun playbook to create it
