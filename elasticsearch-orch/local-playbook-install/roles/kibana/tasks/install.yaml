@@ -1,0 +1,33 @@
+- name: "Override the default environment list if values have been passed in by the user"
+  set_fact:
+    environments:
+    - category: "{{ category }}"
+      metro: "{{ metro }}"
+      offering: "{{ offering }}"
+  when: "offering is defined"
+
+- name: "Set a default for enforce_chart_requirements if appropriate"
+  set_fact:
+    enforce_chart_requirements: true
+  when: "enforce_chart_requirements is undefined"
+- name: "Convert enforce_chart_requirements to boolean true if appropriate (AWX cannot pass it as a boolean)"
+  set_fact:
+    enforce_chart_requirements: true
+  when: "enforce_chart_requirements == 'true'"
+- name: "Convert enforce_chart_requirements to boolean false if appropriate (AWX cannot pass it as a boolean)"
+  set_fact:
+    enforce_chart_requirements: false
+  when: "enforce_chart_requirements == 'false'"
+
+- name: Check if kibana already installed
+  shell: helm list --namespace elasticsearch
+  register: kibana_deployed
+
+- name: "Deploying latest version of Helm charts"
+  deploy_helm_chart:
+    environments: "{{ environments }}"
+    charts: "{{ charts }}"
+    enforce_chart_requirements: "{{ enforce_chart_requirements }}"
+    helm_repository_url: "{{ helm_repository_url }}"
+  when: kibana_deployed.stdout.find("kibana") == -1
+

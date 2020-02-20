@@ -1,0 +1,30 @@
+---
+
+- hosts: localhost
+  # strategy: serial
+  vars:
+    environments:
+    #- category: "np"
+    #  metro: "sjc03"
+    #  offering: "platform-orchestration"
+    - category: "localhost"
+      metro: "localhost"
+      offering: "platform-orchestration"
+    charts:
+      - chart:
+        name: "stable/kibana"
+        namespace: "elasticsearch"
+        release: "kibana"
+        chartVersion: "3.2.6"
+        valuesFile: "p2paas-kib-values.yaml"
+    helm_repository_url: "https://kubernetes-charts.storage.googleapis.com/"
+    enforce_chart_requirements: "false"
+
+  tasks:
+  - import_tasks: "roles/kibana/tasks/install.yaml"
+    when: (run_option == "install")
+
+  - include: "roles/kibana/tasks/uninstall.yaml"
+    when: (run_option == "uninstall")
+
+...

@@ -1,0 +1,30 @@
+---
+
+- hosts: localhost
+  # strategy: serial
+  vars:
+    environments:
+    #- category: "np"
+    #  metro: "sjc03"
+    #  offering: "platform-orchestration"
+    - category: "localhost"
+      metro: "localhost"
+      offering: "platform-orchestration"
+    charts:
+      - chart:
+        name: "stable/elasticsearch"
+        namespace: "elasticsearch"
+        release: "elasticsearch"
+        chartVersion: "1.30.0"
+        valuesFile: "p2paas-es-values.yaml"
+    helm_repository_url: "https://kubernetes-charts.storage.googleapis.com/"
+    enforce_chart_requirements: "false"
+
+  tasks:
+  - import_tasks: "roles/elasticsearch/tasks/install.yaml"
+    when: (run_option == "install")
+
+  - include: "roles/elasticsearch/tasks/uninstall.yaml"
+    when: (run_option == "uninstall")
+
+...

@@ -29,10 +29,21 @@ run helm install elasticsearch stable/elasticsearch --namespace elasticsearch --
 This will printout the k8s yamls and not do an actual install.  You can review this information if you are making changes to that p2pass-es-values.yaml
 
 ### Example run
- - ansible-play elasticsearch.yaml
- - wait until es is running and ready: kubectl get pods -n elasticsearch
- - ansible-play kibana.yaml
- 
+This implementation of elasticsearch uses one playbook that can be called with install or uninstall_chart
+Here is how to run the install:
+ - ansible-playbook elasticsearch-run.yaml --extra-vars "role_name=elasticsearch run_option=install" --module-path roles/elasticsearch/library
+   -- the --module-path is being used as it appears that using an include or an importcauses the implied path to the library to be unavailable
+Here is how to run the uninstall:
+ - ansible-playbook elasticsearch-run.yaml --extra-vars "role_name=elasticsearch run_option=uninstall" --module-path roles/elasticsearch/library
+   -- the --module-path is not required for the uninstall, but am leaving it for consistency
+
+Now, wait until es is running and ready: kubectl get pods -n elasticsearch
+Then we can install kibana:
+ - ansible-playbook kibana-run.yaml --extra-vars "role_name=kibana run_option=install" --module-path roles/elasticsearch/library
+
+To uninstall:
+ - ansible-playbook kibana-run.yaml --extra-vars "role_name=kibana run_option=uninstall" --module-path roles/elasticsearch/library
+
 #### elasticsearch notes
 Elasticsearch can be accessed:
 

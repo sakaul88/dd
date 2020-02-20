@@ -66,16 +66,17 @@ def delete(release_name, purge=True):
         release_name=baseutils.shell_escape(release_name),
         purge='--purge' if purge else ''))
 
-def uninstall(release_name):
+def uninstall(release_name, namespace):
     """
     Deletes a deployed release.
     Args:
         release_name: The release to delete
         purge: Whether to purge all Helm history for the release (Optional, default: True)
     """
-    baseutils.exe_cmd('{helm} uninstall {release_name'.format(
+    baseutils.exe_cmd('{helm} uninstall {release_name} {namespace}'.format(
         helm=helm_binary,
-        release_name=baseutils.shell_escape(release_name)))
+        release_name=baseutils.shell_escape(release_name),
+        namespace=baseutils.shell_escape(namespace)))
 
 
 def install_chart(chart, version, valuesFile, release, namespace, validate_manifest=False, dry_run=False, debug=False):

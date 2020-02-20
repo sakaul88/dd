@@ -1,0 +1,49 @@
+- name: "Override the default environment list if values have been passed in by the user"
+  set_fact:
+    environments:
+    - category: "{{ category }}"
+      metro: "{{ metro }}"
+      offering: "{{ offering }}"
+  when: "offering is defined"
+
+- name: "Set a default for enforce_chart_requirements if appropriate"
+  set_fact:
+    enforce_chart_requirements: true
+  when: "enforce_chart_requirements is undefined"
+- name: "Convert enforce_chart_requirements to boolean true if appropriate (AWX cannot pass it as a boolean)"
+  set_fact:
+    enforce_chart_requirements: true
+  when: "enforce_chart_requirements == 'true'"
+- name: "Convert enforce_chart_requirements to boolean false if appropriate (AWX cannot pass it as a boolean)"
+  set_fact:
+    enforce_chart_requirements: false
+  when: "enforce_chart_requirements == 'false'"
+
+- name: Check if elasticsearch already installed
+  # shell: kubectl get pods --namespace elasticsearch
+  shell: helm list --namespace elasticsearch
+  register: elasticsearch_deployed
+
+- name: "Deploying latest version of Helm charts"
+  deploy_helm_chart:
+    environments: "{{ environments }}"
+    charts: "{{ charts }}"
+    enforce_chart_requirements: "{{ enforce_chart_requirements }}"
+    helm_repository_url: "{{ helm_repository_url }}"
+  when: elasticsearch_deployed.stdout.find("elasticsearch") == -1
+
+# - name: "Deploying elasticsearch Helm chart"
+#   deploy_helm_chart:
+#     environments: "{{ environments }}"
+#     charts: "{{ charts }}"
+#     enforce_chart_requirements: "{{ enforce_chart_requirements }}"
+#     helm_repository_url: "{{ helm_repository_url }}"
+
+
+
+# - debug:
+#     var: elasticsearch_deployed
+
+# - debug:
+#     msg: "It Worked"
+#   when: elasticsearch_deployed.stdout.find("elasticsearch") == -1
