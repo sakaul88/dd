@@ -1,0 +1,12 @@
+- name: Create a bin/kind Directory
+  file:
+    path: "{{ ansible_facts.user_dir }}/kind/bin"
+    state: directory
+    mode: 0755
+
+- name: download kind
+  get_url:
+    url: "https://github.com/kubernetes-sigs/kind/releases/download/v0.7.0/kind-{{ ansible_facts.system }}-amd64"
+    validate_certs: no
+    dest:  "{{ ansible_facts.user_dir }}/kind/bin/kind"
+    mode: "+x"

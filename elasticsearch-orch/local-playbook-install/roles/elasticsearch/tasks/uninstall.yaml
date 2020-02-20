@@ -1,0 +1,7 @@
+- name: Check if elasticsearch already installed
+  shell: helm list --namespace elasticsearch
+  register: elasticsearch_deployed
+
+- name: "UnDeploying elasticsearch Helm chart"
+  shell: helm uninstall elasticsearch --namespace elasticsearch
+  when: not (elasticsearch_deployed.stdout.find("elasticsearch") == -1)

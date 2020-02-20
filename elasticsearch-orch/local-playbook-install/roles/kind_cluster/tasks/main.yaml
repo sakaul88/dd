@@ -1,0 +1,15 @@
+- name: Check for existing cluster
+  shell: "{{ ansible_facts.user_dir }}/kind/bin/kind get clusters"
+  register: cluster_exists
+
+- name: Create Kind (k8s) Cluster (could take a few minutes)
+  shell: "{{ ansible_facts.user_dir }}/kind/bin/kind create cluster"
+  when: cluster_exists.stderr.find("No kind clusters found.") == 0
+
+- name: Check for existing namespace
+  shell: kubectl get namespace
+  register: namespace_exists
+
+- name: Create k8s Namespace
+  shell: kubectl create namespace graylog
+  when: namespace_exists.stdout.find('graylog') == -1

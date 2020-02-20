@@ -12,19 +12,19 @@
       offering: "platform-orchestration"
     charts:
       - chart:
-        name: "stable/elasticsearch"
+        name: "stable/kibana"
         namespace: "elasticsearch"
-        release: "elasticsearch"
-        chartVersion: "1.30.0"
-        valuesFile: "p2paas-es-values.yaml"
+        release: "kibana"
+        chartVersion: "3.2.6"
+        valuesFile: "p2paas-kib-values.yaml"
     helm_repository_url: "https://kubernetes-charts.storage.googleapis.com/"
     enforce_chart_requirements: "false"
 
   tasks:
-  - import_tasks: "roles/elasticsearch/tasks/install.yaml"
+  - import_tasks: "roles/kibana/tasks/install.yaml"
     when: (run_option == "install")
 
-  - include: "roles/elasticsearch/tasks/uninstall.yaml"
+  - include: "roles/kibana/tasks/uninstall.yaml"
     when: (run_option == "uninstall")
 
 ...

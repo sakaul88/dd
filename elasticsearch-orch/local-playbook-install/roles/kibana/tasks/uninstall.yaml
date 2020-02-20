@@ -1,0 +1,7 @@
+- name: Check if kibana already installed
+  shell: helm list --namespace elasticsearch
+  register: kibana_deployed
+
+- name: "UnDeploying kibana Helm chart"
+  shell: helm uninstall kibana --namespace elasticsearch
+  when: not (kibana_deployed.stdout.find("kibana") == -1)
